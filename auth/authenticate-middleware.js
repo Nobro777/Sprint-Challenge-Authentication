@@ -3,28 +3,25 @@
   before granting access to the next middleware/route handler
 */
 
+
+
+
 const jwt = require('jsonwebtoken');
-const { jwtSecret } = require('./secrets.js')
+const jwtSecret = require('./secrets');
 
+module.exports = (req, res, next) => {
+  const token = req.headers.authorization;
 
-module.exports = (req, res, next, error) => {
-  const token = req.headers.authorization
-  
-  if (token) {
+  if(token) {
     jwt.verify(token, jwtSecret, (err, decodedToken) => {
-      if (error) {
-        res.status(401).json({
-          token: "is not valid",
-        })
+      if(err) {
+        res.status(401).json({ message: 'your token is incorrect missing or invalid' })
       } else {
+        req.user = decodedToken;
         next();
       }
     })
-  } else if (error) {
-    res.status(401).json({
-      token: "you shall not pass!",
-    })
   } else {
-    next()
+    res.status(401).json({ message: 'you need a token to continue' })
   }
 };
